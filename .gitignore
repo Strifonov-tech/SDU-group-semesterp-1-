@@ -58,5 +58,5 @@ nunit-*.xml
 
 .idea/
 .vscode/
-.DS_Store/
+.DS_Store
 .git/
