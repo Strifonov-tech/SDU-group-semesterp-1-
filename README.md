@@ -18,4 +18,4 @@ minimize casualties, mitigate avoidable injuries, and ultimately save lives.
 
 ## Software design
 
-![UML Diagram](./UMLFinalDiagram.png)
+![UML Diagram](./Documents/UMLFinalDiagram.png)
