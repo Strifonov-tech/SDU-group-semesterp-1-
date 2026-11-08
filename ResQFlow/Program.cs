@@ -135,7 +135,7 @@ public class Program
     static string GetUserInput(string question)
     {
         Console.WriteLine("--------------------------");
-        Console.Write("Pick an option: ");
+        Console.Write(question);
         return Console.ReadLine() ?? "";
     }
 
