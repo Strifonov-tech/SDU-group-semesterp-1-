@@ -11,7 +11,7 @@ public class Incident
    public uint incidentId { get; }
    public IncidentStatus status { get; private set; }
 
-   public Incident(uint priority, sting location, string description, uint numOfPeople, DateTime timeOfOccurrence, uint incidentId, IncidentStatus status)
+   public Incident(uint priority, string location, string description, uint numOfPeople, DateTime timeOfOccurrence, uint incidentId, IncidentStatus status)
    {
       this.priority = priority;
       this.location = location;
