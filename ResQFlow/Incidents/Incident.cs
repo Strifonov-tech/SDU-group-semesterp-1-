@@ -2,12 +2,23 @@ namespace ResQFlow;
 
 public class Incident
 {
-   private uint priority { get; set; }
-   private string location { get; set; }
-   private string description { get; set; }
-   private uint numOfPeople { get; set; }
+   public uint priority { get; private set; }
+   public string location { get; private set; }
+   public string description { get; private set; }
+   public uint numOfPeople { get; private set; }
    public DateTime timestamp { get; }
-   private DateTime timeOfOccurrence { get; set; }
+   public DateTime timeOfOccurrence { get; private set; }
    public uint incidentId { get; }
-   private IncidentStatus status { get; set; }
+   public IncidentStatus status { get; private set; }
+
+   public Incident(uint priority, string location, string description, uint numOfPeople, DateTime timeOfOccurrence, uint incidentId, IncidentStatus status)
+   {
+      this.priority = priority;
+      this.location = location;
+      this.description = description;
+      this.numOfPeople = numOfPeople;
+      this.timeOfOccurrence = timeOfOccurrence;
+      this.incidentId = incidentId;
+      this.status = status;
+   }
 }
