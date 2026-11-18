@@ -7,14 +7,14 @@ public class DispatchSystem
 
    public Array<Incident> GetActiveIncidents()
    {
-      
+
    }
 
    public Array<Incident> GetFinishedIncidents()
    {
-      
+
    }
-    
+
    public void CreateDispatch(Incident incidents, List<EmergencyUnit> emergencyUnits)
    {
 
@@ -22,6 +22,6 @@ public class DispatchSystem
 
    public int GetDispatches()
    {
-      
+
    }
 }
