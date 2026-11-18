@@ -2,8 +2,8 @@ namespace ResQFlow;
 
 public class DispatchSystem
 {
-   private List<Incident> incidents { get; }
-   private List<Dispatches> dispatches { get; }
+   private List<Incident> incidents { get; } = new();
+   private List<Dispatch> dispatches { get; } = new();
 
    public Array<Incident> GetActiveIncidents()
    {

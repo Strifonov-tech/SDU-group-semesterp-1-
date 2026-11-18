@@ -13,7 +13,7 @@ namespace EmergencyDispatchSystem
         public string CallerName { get; set; }
         public string CallerPhone { get; set; }
         public string DispatchNotes { get; set; }
-        
+
         public string AssignedPriority { get; set; } = "Unassigned";
         public bool IsRejected { get; set; } = false;
         // wondered if it would be good to have calls that can be rejected so i added them anyways (we can remove them easily if you want)

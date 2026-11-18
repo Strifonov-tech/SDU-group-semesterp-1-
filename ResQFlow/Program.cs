@@ -8,6 +8,9 @@ public class Program
     }
 
 
+    /// <summary>
+    /// Main function of the application
+    /// </summary>
     static void RunApp()
     {
         if (!TryLoggingIn())
@@ -87,6 +90,10 @@ public class Program
         return username == "admin" && password == "admin";
     }
 
+    /// <summary>
+    /// Shows the main menu. The user can choose to exit, show history, show active incidents, show information
+    /// handles the user input to pick the correct menu
+    /// </summary>
     static void showMainMenu()
     {
 
@@ -132,6 +139,12 @@ public class Program
         }
     }
 
+
+    /// <summary>
+    /// Simplifies the process of asking for user input so it looks the same each time.
+    /// </summary>
+    /// <param name="question">What to ask the user?</param>
+    /// <returns>Result from the user or empty string.</returns>
     static string GetUserInput(string question)
     {
         Console.WriteLine("--------------------------");
@@ -139,6 +152,9 @@ public class Program
         return Console.ReadLine() ?? "";
     }
 
+    /// <summary>
+    /// Shows the menu that contains information about the application. Maybe credits?
+    /// </summary>
     static void ShowInformationMenu()
     {
         Console.Clear();
@@ -149,6 +165,10 @@ public class Program
         Console.ReadKey();
     }
 
+    /// <summary>
+    /// Shows all the incidents that are currently active. Allows the user to pick a specific incident
+    /// to handle what to send to it
+    /// </summary>
     static void ShowActiveIncidentMenu()
     {
         Console.Clear();
@@ -159,8 +179,13 @@ public class Program
         Console.WriteLine("4. Incident example here!");
         GetUserInput("Pick an incident number: ");
         // TODO show the information about the incident
+        // TODO show the menu for dispatching stuff?
     }
 
+    /// <summary>
+    /// Shows all the incidents that have been handled. Allows the user to pick a specific incident
+    /// to show more information about it.
+    /// </summary>
     static void ShowHistoryMenu()
     {
         Console.Clear();
