@@ -10,8 +10,16 @@ public class Dispatch
     public readonly UInt32 id;
 
 
-   public Dispatch(Incident incident)
+   public Dispatch(Incident incident, List<EmergencyUnit> assignedUnits)
     {
+
         this.incident = incident;
+        this.assignedUnits = assignedUnits;    
+    
+    }
+
+    public void assignUnit (EmergencyUnit unit)
+    {
+        assignedUnits.Add(unit);
     }
 }
