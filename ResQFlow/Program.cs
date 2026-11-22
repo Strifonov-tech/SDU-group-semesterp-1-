@@ -46,6 +46,7 @@ public class Program
     private List<Operator> operators;
     private Operator? loggedUser;
     private DispatchSystem system;
+    private const uint PAGE_SIZE = 5; // configures how many incidents are shown on information pages
 
     public Program(List<Operator> operators)
     {
@@ -192,7 +193,7 @@ public class Program
             {
                 Console.WriteLine("Invalid input. Please enter a valid number.");
                 Console.ReadKey();
-                return;
+                continue;
             }
 
             switch(number)
@@ -278,27 +279,84 @@ public class Program
         Console.WriteLine($"Status: {incident.status}");
         Console.WriteLine($"Occured at: {incident.timeOfOccurrence}");
         Console.WriteLine($"Number of people in emergency: {incident.numOfPeople}");
-        Console.WriteLine("Enter any key to return to main menu...");
-        Console.ReadKey();
     }
 
     /// <summary>
     /// Shows all the incidents that have been handled. Allows the user to pick a specific incident
     /// to show more information about it.
     /// </summary>
-    private void ShowHistoryMenu(uint pageNum = 1)
+    private void ShowHistoryMenu()
     {
-        // if the pageNum is higher than what is possible, show the last one only. also don't allow
-        // user to go to the next page if not possible. same for previous page. don't show it if there isn't a previous page
-        uint PAGE_SIZE = 5;
+        uint currentPage = 1;
         Incident[] finishedIncidents = this.system.GetFinishedIncidents();
-        uint pageCount = (uint)(finishedIncidents.Length / PAGE_SIZE);
-        Console.Clear();
-        ShowHeader($"History---Logged in as: {GetLoggedUsername()}");
-        Console.WriteLine("0: Exit to Main menu");
-        // TODO show Incidents here. 5 per page
-        Console.WriteLine("P: Previous Page :: N: Next page");
-        GetUserInput("Pick an incident number: ");
-        // TODO show the information about the incident
+        uint pageCount = (uint) Math.Ceiling(finishedIncidents.Length / (double) PAGE_SIZE);
+        // TODO extract the paging and showing of incidents into its own function
+        while (true)
+        {
+            Console.Clear();
+            ShowHeader($"History---Logged in as: {GetLoggedUsername()}");
+            if (finishedIncidents.Length == 0)
+            {
+                Console.WriteLine("No finished incidents yet!");
+                Console.ReadKey();
+                return;
+            }
+
+            currentPage = Math.Clamp(currentPage, 1, pageCount);
+
+            int startIndex = (int)((currentPage - 1) * PAGE_SIZE);
+            long endIndex = Math.Min(startIndex + PAGE_SIZE, finishedIncidents.Length);
+
+            Console.WriteLine("0: Exit to Main menu");
+
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                Console.WriteLine($"{i - startIndex + 1}: {finishedIncidents[i].incidentId}");
+            }
+
+            if (currentPage > 1)
+            {
+                Console.WriteLine($"{PAGE_SIZE + 1}. Previous Page");
+            }
+
+            if (currentPage < pageCount)
+            {
+                Console.WriteLine($"{PAGE_SIZE + 2}. Next Page");
+            }
+
+            string input = GetUserInput("Pick an option: ");
+
+            if (!uint.TryParse(input, out uint choice))
+            {
+                Console.WriteLine("Invalid input. Please enter a valid number.");
+                Console.ReadKey();
+                continue;
+            }
+
+            switch (choice)
+            {
+                case 0:
+                    return;
+                case PAGE_SIZE + 1:
+                    currentPage--;
+                    break;
+                case PAGE_SIZE + 2:
+                    currentPage++;
+                    break;
+                default:
+                    if (choice <= endIndex - startIndex)
+                    {
+                        Incident selectedIncident = finishedIncidents[startIndex + choice - 1];
+                        ShowIncidentInformation(selectedIncident);
+                        Console.WriteLine("Enter any key to return to the previous menu...");
+                        Console.ReadKey();
+                    } else
+                    {
+                        Console.WriteLine("Invalid input");
+                        Console.ReadKey();
+                    }
+                    break;
+            }
+        }
     }
 }
