@@ -258,15 +258,111 @@ public class Program
     /// </summary>
     private void ShowActiveIncidentMenu()
     {
-        Console.Clear();
-        ShowHeader($"Active Incident---Logged in as: {GetLoggedUsername()}");
-        Console.WriteLine("1. Incident example here!");
-        Console.WriteLine("2. Incident example here!");
-        Console.WriteLine("3. Incident example here!");
-        Console.WriteLine("4. Incident example here!");
-        GetUserInput("Pick an incident number: ");
         // TODO show the information about the incident
         // TODO show the menu for dispatching stuff?
+        uint currentPage = 1;
+        Incident[] activeIncidents = this.system.GetActiveIncidents();
+        while (true)
+        {
+            Console.Clear();
+            ShowHeader($"Active Incident---Logged in as: {GetLoggedUsername()}");
+            if (activeIncidents.Length == 0)
+            {
+                Console.WriteLine("No Active incidents!");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("0: Exit to Main menu");
+            var (startIndex, endIndex) = ShowPaginatedResults(activeIncidents, currentPage, (incident, number) =>
+            {
+                Console.WriteLine($"{number}: {incident.incidentId} - {incident.status.ToString()}");
+            });
+
+            string input = GetUserInput("Pick an option: ");
+            if (!uint.TryParse(input, out uint choice))
+            {
+                Console.WriteLine("Invalid input. Please enter a valid number.");
+                Console.ReadKey();
+                continue;
+            }
+
+            switch (choice)
+            {
+                case 0:
+                    return;
+                case PAGE_SIZE + 1:
+                    if (currentPage > 1) currentPage--;
+                    break;
+                case PAGE_SIZE + 2:
+                    if (endIndex < activeIncidents.Length) currentPage++;
+                    break;
+                default:
+                    if (choice <= endIndex - startIndex)
+                    {
+                        Incident selectedIncident = activeIncidents[startIndex + choice - 1];
+                        ShowIncidentDispatchMenu(selectedIncident);
+                    } else
+                    {
+                        Console.WriteLine("Invalid input");
+                        Console.ReadKey();
+                    }
+                    break;
+            }
+        }
+    }
+
+
+    private void ShowIncidentDispatchMenu(Incident incident)
+    {
+        while (true)
+        {
+            Console.Clear();
+
+            ShowHeader($"Dispatch Management - Incident #{incident.incidentId}");
+
+            Console.WriteLine("0: Return to active incidents");
+            Console.WriteLine("1: Assign units");
+            Console.WriteLine("2: View assigned units");
+            if (incident.status == IncidentStatus.DISPATCHED)
+            {
+                Console.WriteLine("3: Remove assigned units");
+            }
+
+            string input = GetUserInput("Pick an option: ");
+
+            if (!uint.TryParse(input, out uint choice))
+            {
+                Console.WriteLine("Invalid input.");
+                Console.ReadKey();
+                continue;
+            }
+
+            switch (choice)
+            {
+                case 0:
+                    return;
+
+                case 1:
+                    // Assign units
+                    break;
+
+                case 2:
+                    if (incident.status != IncidentStatus.DISPATCHED)
+                    {
+                        Console.WriteLine("No units assigned yet");
+                    }
+                    break;
+
+                case 3:
+                    // remove the units from the incident
+                    break;
+                default:
+                    Console.WriteLine("Invalid option.");
+                    Console.ReadKey();
+                    break;
+            }
+        }
     }
 
     private void ShowIncidentInformation(Incident incident)
@@ -282,6 +378,49 @@ public class Program
     }
 
     /// <summary>
+    /// Function that takes in array of anything and creates a paging functionality with it
+    /// </summary>
+    /// <returns>The start index from where the page starts
+    /// The end index from where the page ends</returns>
+    private (uint StartIndex, uint EndIndex) ShowPaginatedResults<T>(
+        T[] results,
+        uint pageNum,
+        Action<T, uint> displayItem,
+        uint itemsPerPage = PAGE_SIZE
+        )
+    {
+        if (results == null || results.Length == 0 || itemsPerPage == 0) return (0,0);
+
+        uint pageCount = (uint) Math.Ceiling(results.Length / (double) itemsPerPage);
+
+        // invalid page number
+        if (pageNum < 1 || pageNum > pageCount)
+        {
+            return (0, 0);
+        }
+
+        uint startIndex = (uint)((pageNum - 1) * PAGE_SIZE);
+        uint endIndex = (uint) Math.Min(startIndex + PAGE_SIZE, results.Length);
+        for (uint i = startIndex; i < endIndex; i++)
+        {
+            displayItem(results[i], i - startIndex + 1);
+        }
+
+        if (pageNum > 1)
+        {
+            Console.WriteLine($"{PAGE_SIZE + 1}. Previous Page");
+        }
+
+        if (pageNum < pageCount)
+        {
+            Console.WriteLine($"{PAGE_SIZE + 2}. Next Page");
+        }
+
+        return (startIndex, endIndex);
+
+    }
+
+    /// <summary>
     /// Shows all the incidents that have been handled. Allows the user to pick a specific incident
     /// to show more information about it.
     /// </summary>
@@ -289,8 +428,6 @@ public class Program
     {
         uint currentPage = 1;
         Incident[] finishedIncidents = this.system.GetFinishedIncidents();
-        uint pageCount = (uint) Math.Ceiling(finishedIncidents.Length / (double) PAGE_SIZE);
-        // TODO extract the paging and showing of incidents into its own function
         while (true)
         {
             Console.Clear();
@@ -302,30 +439,13 @@ public class Program
                 return;
             }
 
-            currentPage = Math.Clamp(currentPage, 1, pageCount);
-
-            int startIndex = (int)((currentPage - 1) * PAGE_SIZE);
-            long endIndex = Math.Min(startIndex + PAGE_SIZE, finishedIncidents.Length);
-
             Console.WriteLine("0: Exit to Main menu");
-
-            for (int i = startIndex; i < endIndex; i++)
+            var (startIndex, endIndex) = ShowPaginatedResults(finishedIncidents, currentPage, (incident, number) =>
             {
-                Console.WriteLine($"{i - startIndex + 1}: {finishedIncidents[i].incidentId}");
-            }
-
-            if (currentPage > 1)
-            {
-                Console.WriteLine($"{PAGE_SIZE + 1}. Previous Page");
-            }
-
-            if (currentPage < pageCount)
-            {
-                Console.WriteLine($"{PAGE_SIZE + 2}. Next Page");
-            }
+                Console.WriteLine($"{number}: {incident.incidentId} - {incident.timestamp}");
+            });
 
             string input = GetUserInput("Pick an option: ");
-
             if (!uint.TryParse(input, out uint choice))
             {
                 Console.WriteLine("Invalid input. Please enter a valid number.");
@@ -338,10 +458,10 @@ public class Program
                 case 0:
                     return;
                 case PAGE_SIZE + 1:
-                    currentPage--;
+                    if (currentPage > 1) currentPage--;
                     break;
                 case PAGE_SIZE + 2:
-                    currentPage++;
+                    if (endIndex < finishedIncidents.Length) currentPage++;
                     break;
                 default:
                     if (choice <= endIndex - startIndex)

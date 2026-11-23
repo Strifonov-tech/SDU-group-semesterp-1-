@@ -10,10 +10,8 @@ public class Dispatch
     public Guid id { get; } = Guid.NewGuid(); //The function Guid id = Guid.NewGuid() generates automaticly an unique Id for the index "id", everytime a new object is created;
    public Dispatch(Incident incident, List<EmergencyUnit> assignedUnits)
     {
-        
         this.incident = incident;
-        this.assignedUnits = assignedUnits;    
-    
+        this.assignedUnits = assignedUnits;
     }
 
     public void assignUnit (EmergencyUnit unit)
@@ -22,7 +20,7 @@ public class Dispatch
         {
             throw new ArgumentException("Unit not available or field not filled");
         } //In case the "unit" variable is either a null or it isn't available;
-        else 
+        else
         {
             assignedUnits.Add(unit);
             unit.isAvailable = false;
