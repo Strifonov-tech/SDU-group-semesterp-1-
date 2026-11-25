@@ -1,20 +1,19 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace ResQFlow;
 
 public class Dispatch
 {
     public readonly Incident incident;
-    private List<EmergencyUnit> assignedUnits { get; } = new();
+    public List<EmergencyUnit> assignedUnits { get; } = new();
     public DateTime timestamp { get; }
     public Guid id { get; } = Guid.NewGuid(); //The function Guid id = Guid.NewGuid() generates automaticly an unique Id for the index "id", everytime a new object is created;
-   public Dispatch(Incident incident, List<EmergencyUnit> assignedUnits)
+
+    public Dispatch(Incident incident, List<EmergencyUnit> assignedUnits)
     {
         this.incident = incident;
         this.assignedUnits = assignedUnits;
     }
 
-    public void assignUnit (EmergencyUnit unit)
+    public void assignUnit(EmergencyUnit unit)
     {
         if (unit == null || !unit.isAvailable)
         {

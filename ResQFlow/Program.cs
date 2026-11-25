@@ -2,25 +2,6 @@
 
 public class Program
 {
-
-    /*
-    ==========================================================================================
-        PLACEHOLDERS SINCE NOT ALL THE CODE IS MADE YET. REMOVE LATER
-    ==========================================================================================
-    */
-    // TODO remove this when the actual operator gets done
-    public class Operator
-    {
-        public string Name { get; private set; }
-        public string Password { get; private set; }
-
-        public Operator(string name, string password)
-        {
-            this.Name = name;
-            this.Password = password;
-        }
-    }
-
     /*
     ==========================================================================================
         ACTUAL PARTS OF THE MAIN FILE
@@ -312,6 +293,80 @@ public class Program
         }
     }
 
+    private List<EmergencyUnit> SelectUnits(
+        EmergencyUnit[] units)
+    {
+        uint currentPage = 1;
+        var selectedUnits = new List<EmergencyUnit>();
+
+        while (true)
+        {
+            Console.Clear();
+            ShowHeader("Available Units");
+
+            if (units.Length == 0)
+            {
+                Console.WriteLine("No units available.");
+                Console.ReadKey();
+                return selectedUnits;
+            }
+
+            Console.WriteLine("0. Confirm selection");
+            Console.WriteLine("--------------------------------");
+
+            var (startIndex, endIndex) = ShowPaginatedResults(
+                units,
+                currentPage,
+                (unit, number) =>
+                {
+                    string status = selectedUnits.Contains(unit) ? "[SELECTED]" : "";
+                    Console.WriteLine(
+                        $"{number}. ID: {unit.unitId} | {unit.GetType().Name} | {unit.plate} | {status}"
+                    );
+                }
+            );
+
+            Console.WriteLine("--------------------------------");
+            Console.WriteLine($"Selected units: {selectedUnits.Count}");
+            Console.WriteLine("Enter unit numbers separated by commas (e.g. 1, 3, 5).");
+            string input = GetUserInput("Selection: ");
+
+            if (input == "0")
+                return selectedUnits;
+
+            if (input == (PAGE_SIZE + 1).ToString())
+            {
+                if (currentPage > 1)
+                    currentPage--;
+
+                continue;
+            }
+
+            if (input == (PAGE_SIZE + 2).ToString())
+            {
+                if (endIndex < units.Length)
+                    currentPage++;
+
+                continue;
+            }
+
+            foreach (string selection in input.Split(','))
+            {
+                if (!uint.TryParse(selection.Trim(), out uint choice))
+                    continue;
+
+                if (choice < 1 || choice > endIndex - startIndex)
+                    continue;
+
+                EmergencyUnit unit = units[(int)(startIndex + choice - 1)];
+
+                if (!selectedUnits.Contains(unit))
+                    selectedUnits.Add(unit);
+                else
+                    selectedUnits.Remove(unit);
+            }
+        }
+    }
 
     private void ShowIncidentDispatchMenu(Incident incident)
     {
@@ -323,9 +378,9 @@ public class Program
 
             Console.WriteLine("0: Return to active incidents");
             Console.WriteLine("1: Assign units");
-            Console.WriteLine("2: View assigned units");
             if (incident.status == IncidentStatus.DISPATCHED)
             {
+                Console.WriteLine("2: View assigned units");
                 Console.WriteLine("3: Remove assigned units");
             }
 
@@ -345,17 +400,22 @@ public class Program
 
                 case 1:
                     // Assign units
+                    EmergencyUnit[] units = this.system.GetAvailableUnits();
+                    List<EmergencyUnit> pickedUnits = SelectUnits(units);
+                    if (pickedUnits.Count==0) break;
+                    this.system.CreateDispatch(incident, pickedUnits);
                     break;
 
                 case 2:
-                    if (incident.status != IncidentStatus.DISPATCHED)
-                    {
-                        Console.WriteLine("No units assigned yet");
-                    }
+                    if (incident.status != IncidentStatus.DISPATCHED) break;
+                    Dispatch? dispatch = this.system.GetDispatchById(incident.incidentId);
+                    if (dispatch == null) throw new Exception("Dispatch shouldn't be null if the incident is dispatched");
+                    ShowAssignedUnits(dispatch);
                     break;
 
                 case 3:
                     // remove the units from the incident
+                    if (incident.status != IncidentStatus.DISPATCHED) break;
                     break;
                 default:
                     Console.WriteLine("Invalid option.");
@@ -363,6 +423,21 @@ public class Program
                     break;
             }
         }
+    }
+
+    private void ShowAssignedUnits(Dispatch dispatch)
+    {
+        Console.Clear();
+        ShowHeader($"Incident {dispatch.id.ToString()}---Logged in as: {GetLoggedUsername()}");
+        Console.WriteLine("Assigned units: ");
+        Console.WriteLine("--------------------------");
+        foreach (EmergencyUnit unit in dispatch.assignedUnits)
+        {
+            Console.WriteLine(unit);
+        }
+
+        Console.WriteLine("Press any key to return...");
+        Console.ReadKey();
     }
 
     private void ShowIncidentInformation(Incident incident)
