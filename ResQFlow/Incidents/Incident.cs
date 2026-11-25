@@ -21,4 +21,9 @@ public class Incident
       this.incidentId = incidentId;
       this.status = status;
    }
+
+   public void IncidentStatus(IncidentStatus status)
+   {
+      this.status = status;
+   }
 }
