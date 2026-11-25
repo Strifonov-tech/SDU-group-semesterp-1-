@@ -18,4 +18,32 @@ minimize casualties, mitigate avoidable injuries, and ultimately save lives.
 
 ## Software design
 
+### Application flow
+
+```mermaid
+flowchart TD
+    A([Start]) --> B[Enter login details]
+    B --> C{Credentials valid?}
+    C -- Yes --> D[Main menu]
+    C -- No, attempts left --> B
+    C -- No attempts left --> E([Close application])
+    D -- Active incidents --> F[Browse active incidents]
+    F --> G[Open dispatch menu]
+    G --> F
+    D -- History --> H[Browse finished incidents]
+    H --> I[View incident details]
+    I --> H
+    D -- Information --> J[View app information]
+    J --> D
+    D -- Log out --> B
+    D -- Exit --> E
+```
+
+The incident lists use sample data, and unit assignment/removal is not implemented yet.
+
+### Flowgorithm version
+
+Open [Documents/ResQFlow-Flowgorithm.fprg](./Documents/ResQFlow-Flowgorithm.fprg) in Flowgorithm.
+The flow includes the three-attempt login and the main menu loop.
+
 ![UML Diagram](./Documents/UMLFinalDiagram.png)
