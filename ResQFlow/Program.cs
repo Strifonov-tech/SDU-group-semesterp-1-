@@ -380,8 +380,7 @@ public class Program
             Console.WriteLine("1: Assign units");
             if (incident.status == IncidentStatus.DISPATCHED)
             {
-                Console.WriteLine("2: View assigned units");
-                Console.WriteLine("3: Remove assigned units");
+                Console.WriteLine("2: Remove assigned units");
             }
 
             string input = GetUserInput("Pick an option: ");
@@ -410,13 +409,9 @@ public class Program
                     if (incident.status != IncidentStatus.DISPATCHED) break;
                     Dispatch? dispatch = this.system.GetDispatchById(incident.incidentId);
                     if (dispatch == null) throw new Exception("Dispatch shouldn't be null if the incident is dispatched");
-                    ShowAssignedUnits(dispatch);
+                    ShowRemoveUnits(dispatch);
                     break;
 
-                case 3:
-                    // remove the units from the incident
-                    if (incident.status != IncidentStatus.DISPATCHED) break;
-                    break;
                 default:
                     Console.WriteLine("Invalid option.");
                     Console.ReadKey();
@@ -425,19 +420,95 @@ public class Program
         }
     }
 
-    private void ShowAssignedUnits(Dispatch dispatch)
+    private void ShowRemoveUnits(Dispatch dispatch)
     {
-        Console.Clear();
-        ShowHeader($"Incident {dispatch.id.ToString()}---Logged in as: {GetLoggedUsername()}");
-        Console.WriteLine("Assigned units: ");
-        Console.WriteLine("--------------------------");
-        foreach (EmergencyUnit unit in dispatch.assignedUnits)
-        {
-            Console.WriteLine(unit);
-        }
+        uint currentPage = 1;
+        var selectedUnits = new List<EmergencyUnit>();
 
-        Console.WriteLine("Press any key to return...");
-        Console.ReadKey();
+        while (true)
+        {
+            Console.Clear();
+            ShowHeader($"Remove Units - Incident #{dispatch.id}");
+
+            if (dispatch.assignedUnits.Count == 0)
+            {
+                Console.WriteLine("No units assigned to this incident.");
+                Console.ReadKey();
+                return;
+            }
+
+            Console.WriteLine("0. Confirm removal");
+            Console.WriteLine("--------------------------------");
+
+            var (startIndex, endIndex) = ShowPaginatedResults(
+                dispatch.assignedUnits.ToArray(),
+                currentPage,
+                (unit, number) =>
+                {
+                    string status = selectedUnits.Contains(unit)
+                        ? "[MARKED FOR REMOVAL]"
+                        : "";
+
+                    Console.WriteLine(
+                        $"{number}. ID: {unit.unitId} | {unit.GetType().Name} | {unit.plate} {status}"
+                    );
+                }
+            );
+
+            Console.WriteLine("--------------------------------");
+            Console.WriteLine($"Units marked for removal: {selectedUnits.Count}");
+            Console.WriteLine("Enter unit numbers separated by commas (e.g. 1, 3, 5).");
+
+            string input = GetUserInput("Selection: ");
+
+            if (input == "0")
+            {
+                if (selectedUnits.Count == 0)
+                    return;
+
+                // Perform the actual removal
+                foreach (EmergencyUnit unit in selectedUnits)
+                {
+                    dispatch.ComeBackUnit(unit);
+                }
+
+                return;
+            }
+
+            if (input == (PAGE_SIZE + 1).ToString())
+            {
+                if (currentPage > 1)
+                    currentPage--;
+
+                continue;
+            }
+
+            if (input == (PAGE_SIZE + 2).ToString())
+            {
+                if (endIndex < dispatch.assignedUnits.Count)
+                    currentPage++;
+
+                continue;
+            }
+
+            foreach (string selection in input.Split(','))
+            {
+                if (!uint.TryParse(selection.Trim(), out uint choice))
+                    continue;
+
+                if (choice < 1 || choice > endIndex - startIndex)
+                    continue;
+
+                EmergencyUnit unit = dispatch.assignedUnits[
+                    (int)(startIndex + choice - 1)
+                ];
+
+                if (!selectedUnits.Contains(unit))
+                    selectedUnits.Add(unit);
+                else
+                    selectedUnits.Remove(unit);
+            }
+        }
     }
 
     private void ShowIncidentInformation(Incident incident)
