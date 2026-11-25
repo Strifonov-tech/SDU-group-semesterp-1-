@@ -20,6 +20,5 @@ public class Incident
       this.timeOfOccurrence = timeOfOccurrence;
       this.incidentId = incidentId;
       this.status = status;
-
    }
 }
